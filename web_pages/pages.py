@@ -3,13 +3,10 @@ import streamlit as st
 class AppPages:
 
     def __init__(self):
-        self.pages = {
-            "Home":self.home_page,
-            "Chat!":self.chat_page,
-        }
+        self
 
     def contact_me(self):
-        if st.sidebar.button("Contact me."):
+        if st.sidebar.button("Contact me"):
             st.sidebar.markdown(
                 """
                 **Contact:-**\n
@@ -23,12 +20,12 @@ class AppPages:
             )
 
     def home_page(self):
-        st.contacy_me()
+        self.contact_me()
         st.title("Welcome to the Chatbot Application")
         st.write("**Interact with your documents effortlessly**")
         st.write(
-            "This platform allows you to upload your PDFs and start a conversation with our advanced chatbot about the content. "
-            "Our chatbot is designed to help you extract insights, answer questions, and provide a deeper understanding of your documents."
+            "This platform allows you to upload your PDFs and start a conversation with my chatbot about the content. "
+            "My chatbot is designed to help you extract insights, answer questions, and provide a deeper understanding of your documents."
         )
         st.header("Features:")
         st.write("""
