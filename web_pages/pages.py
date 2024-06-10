@@ -38,4 +38,10 @@ class AppPages:
     def chat_page(self):
         self.contact_me()
         st.title("Try with your PDFs!")
+
+        #st.subheader("Your documents")
+        st.file_uploader("Upload Files")
+        st.button("Process")
+
+        st.text_input("What is in your mind?")
     
