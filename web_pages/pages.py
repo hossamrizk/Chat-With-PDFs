@@ -1,4 +1,5 @@
 import streamlit as st
+from handle_text import PDFProcess
 
 class AppPages:
 
@@ -39,9 +40,20 @@ class AppPages:
         self.contact_me()
         st.title("Try with your PDFs!")
 
-        #st.subheader("Your documents")
-        st.file_uploader("Upload Files")
-        st.button("Process")
+        pdf_docs = st.file_uploader("Upload Files",accept_multiple_files=True)
+        if st.button("Process"):
+            with st.spinner("Processing"):
+                # Instance from class
+                pdf_processor = PDFProcess()
+
+                # get pdf text
+                raw_text = pdf_processor.get_pdf_text(pdf_docs)
+
+                # Get Text Chunks
+                text_chunks = pdf_processor.get_text_chunks(raw_text)
+
+                # Create vectorstore
+                vectorstore = pdf_processor.get_vectorstore(text_chunks)
 
         st.text_input("What is in your mind?")
     
