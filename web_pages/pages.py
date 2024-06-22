@@ -1,9 +1,17 @@
 import streamlit as st
 from handle_text import PDFProcess
+import torch
+import pickle
+import faiss
+from tempfile import NamedTemporaryFile
+import os
+from langchain.vectorstores.faiss import FAISS
+
 
 class AppPages:
 
     def __init__(self):
+        self.vectorstore = None
         self
 
     def contact_me(self):
@@ -35,15 +43,18 @@ class AppPages:
         - Receive accurate and context-aware responses.
         - Easy-to-use interface for seamless interaction.
         """)
-
-    def chat_page(self):
+    """
+    def chat_page_local_embeddings(self):
         self.contact_me()
         st.title("Try with your PDFs!")
 
         pdf_docs = st.file_uploader("Upload Files",accept_multiple_files=True)
         if st.button("Process"):
             with st.spinner("Processing"):
-                # Instance from class
+
+                torch.cuda.empty_cache()
+            
+                # Instance from the class
                 pdf_processor = PDFProcess()
 
                 # get pdf text
@@ -56,4 +67,29 @@ class AppPages:
                 vectorstore = pdf_processor.get_vectorstore(text_chunks)
 
         st.text_input("What is in your mind?")
+        """
+    def chat_page(self):
+        self.contact_me()
+        st.title("Try with your PDFs!")
+
+        pdf_docs = st.file_uploader("Upload Files", accept_multiple_files=True)
+        if pdf_docs:
+            if st.button("Upload"):
+                with st.spinner("Processing"):
+                    try:
+                        # Load Faiss index from .faiss file
+                        index = faiss.read_index('/home/hossam/Chat with PDFs/vectoestoe/index.faiss')
+
+                        # Load embeddings or other data from .pkl file
+                        with open('/home/hossam/Chat with PDFs/vectoestoe/index.pkl', 'rb') as f:
+                            embeddings = pickle.load(f)
+
+                        # Example of using loaded data (replace with your actual logic)
+                        st.success("Loaded Faiss index and embeddings!")
+                    
+                    except IOError as e:
+                        st.error(f"Error loading files: {e}")
+
+        # Allow user input for additional text analysis
+        user_input = st.text_input("What is in your mind?")
     
