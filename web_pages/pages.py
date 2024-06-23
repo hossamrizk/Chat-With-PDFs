@@ -1,10 +1,7 @@
 import streamlit as st
 from handle_text import PDFProcess
-import torch
+from chatbot import get_conversation_chain
 import pickle
-import faiss
-from tempfile import NamedTemporaryFile
-import os
 from langchain.vectorstores.faiss import FAISS
 
 
@@ -12,6 +9,7 @@ class AppPages:
 
     def __init__(self):
         self.vectorstore = None
+        self.embeddings = None
         self
 
     def contact_me(self):
@@ -43,6 +41,62 @@ class AppPages:
         - Receive accurate and context-aware responses.
         - Easy-to-use interface for seamless interaction.
         """)
+    
+    def handle_userinput(self, user_question):
+        if st.session_state.conversation:
+            if callable(st.session_state.conversation):
+                try:
+                    response = st.session_state.conversation({'question': user_question})
+                    st.write(f"**User:** {user_question}")
+                    st.write(f"**Bot:** {response['answer']}")
+                    st.session_state.chat_history = response.get('chat_history', [])  # Ensure chat_history exists
+                except Exception as e:
+                    st.error(f"Error during conversation: {e}")
+            else:
+                st.warning("Conversation object is not callable.")
+        else:
+            st.warning("Conversation not initialized. Please upload PDFs and start processing.")
+
+    
+    # Define your chat_page function
+    def chat_page(self):
+        self.contact_me()
+        st.title("Try with your PDFs!")
+
+        # Initialize session state variables if not already initialized
+        if "conversation" not in st.session_state:
+            st.session_state.conversation = None
+        
+        if "chat_history" not in st.session_state:
+            st.session_state.chat_history = None
+
+        pdf_docs = st.file_uploader("Upload Files", accept_multiple_files=True)
+        if pdf_docs:
+            if st.button("Upload"):
+                with st.spinner("Processing"):
+                    try:
+                        # Create vectorestore
+                        with open('/home/hossam/Chat with PDFs/vectoestoe/index.pkl', 'rb') as f:
+                            embeddings = pickle.load(f)
+                        
+                        vectorstore = FAISS.load_local(
+                            folder_path='/home/hossam/Chat with PDFs/vectoestoe/',
+                            embeddings=embeddings, 
+                            allow_dangerous_deserialization=True
+                        )
+
+                        st.success("Loaded Faiss index and embeddings!")
+                        # Create conversation chain
+                        st.session_state.conversation = get_conversation_chain(vectorstore)
+
+                    except IOError as e:
+                        st.error(f"Error loading files: {e}")
+
+        user_question = st.text_input("Ask")
+        if user_question:
+            self.handle_userinput(user_question)
+                
+
     """
     def chat_page_local_embeddings(self):
         self.contact_me()
@@ -68,28 +122,3 @@ class AppPages:
 
         st.text_input("What is in your mind?")
         """
-    def chat_page(self):
-        self.contact_me()
-        st.title("Try with your PDFs!")
-
-        pdf_docs = st.file_uploader("Upload Files", accept_multiple_files=True)
-        if pdf_docs:
-            if st.button("Upload"):
-                with st.spinner("Processing"):
-                    try:
-                        # Load Faiss index from .faiss file
-                        index = faiss.read_index('/home/hossam/Chat with PDFs/vectoestoe/index.faiss')
-
-                        # Load embeddings or other data from .pkl file
-                        with open('/home/hossam/Chat with PDFs/vectoestoe/index.pkl', 'rb') as f:
-                            embeddings = pickle.load(f)
-
-                        # Example of using loaded data (replace with your actual logic)
-                        st.success("Loaded Faiss index and embeddings!")
-                    
-                    except IOError as e:
-                        st.error(f"Error loading files: {e}")
-
-        # Allow user input for additional text analysis
-        user_input = st.text_input("What is in your mind?")
-    
