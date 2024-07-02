@@ -1,9 +1,11 @@
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import HuggingFaceInstructEmbeddings
+from langchain_community.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 import torch
-
+from dotenv import load_dotenv
+import os
 class PDFProcess:
     def __init__(self, chunk_size=1000, chunk_overlap=250,model_name="hkunlp/instructor-xl", use_gpu=True, batch_size=1):
         self.chunk_size = chunk_size
@@ -30,26 +32,10 @@ class PDFProcess:
         )
         chunks = text_splitter.split_text(text)
         return chunks
-    '''
-    # Create vectore store
-    def get_vectorstore(self, text_chunks):
-        # Initialize the embedding model
-        embeddings = HuggingFaceInstructEmbeddings(model_name=self.model_name)
-        embeddings.client = embeddings.client.to(self.device)
+    
+    def get_vectorstore_huggingface(self, text_chunks):
+
         
-        embedding_vectors = []
-        for i in range(0, len(text_chunks), self.batch_size):
-            batch_chunks = text_chunks[i:i + self.batch_size]
-            with torch.no_grad():
-                # Compute embeddings on the correct device
-                batch_embeddings = embeddings.embed_documents(batch_chunks)
-                embedding_vectors.extend(batch_embeddings)
-            torch.cuda.empty_cache()
-        
-        vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embedding_vectors)
-        return vectorstore
-        '''
-    def get_vectorstore(self, text_chunks):
         # Initialize the embedding model
         embeddings = HuggingFaceInstructEmbeddings(model_name=self.model_name)
         embeddings.client = embeddings.client.to(self.device)
@@ -76,3 +62,12 @@ class PDFProcess:
         # Return the FAISS vector store
         vectorstore = FAISS(index=index)
         return vectorstore
+    
+    def get_vectorestore_openai(self, text_chunks):
+        load_dotenv()
+        openai_key = os.getenv("OPENAI_API_KEY")
+
+        embeddings = OpenAIEmbeddings(openai_api_key=openai_key)
+        vectorestore = FAISS.from_texts(texts=text_chunks,
+                                        embedding=embeddings)
+        return vectorestore

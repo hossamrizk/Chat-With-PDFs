@@ -22,7 +22,7 @@ def main():
     if selected_page == "Home":
        pages.home_page()
     elif selected_page == "Chat":
-        pages.chat_page()
+        pages.chat_page_openai()
 
 
 

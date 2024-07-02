@@ -1,1 +1,1 @@
-from .chatbot import get_conversation_chain
+from .chatbot import get_conversation_chain_huggingface, get_conversation_chain_openai
